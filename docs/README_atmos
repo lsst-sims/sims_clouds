@@ -1,0 +1,94 @@
+README
+------------------------------------
+ATMOSPHERE TRANSMISSION SPECTRA SIMULATION PACKAGE
+USER GUIDE  Version1.0 M. Creze 06/05/2010
+
+This first tentative delivery of the atmosphere spectra simulation package has been prepared for you
+to test in real conditions the portability of the tools.
+
+No significant effort has been spent yet to fully standardize the python modules, but they are in principle
+reasonably commented. This will be improved in the next deliveries.
+
+A detailed description of the simulation effort is given in the AtmSpRef_I_V2.0.pdf file
+you will find it in the mkatmos/Docs dir , next to the present README. To make short,
+producing a set of simulated atmosphere spectra in front of a series of LSST pontings inludes in principle
+the following steps
+                 1) creating an atmosphere history file , for the calendar period of interest, that is
+                     transforming a set of heuristic rules describing the meteo evolution during the period
+                     into a list of time  dependant parameter values reflecting this evolution.
+                 2) combining the atmosphere history file with a given LSST pointing history file
+                     to get a list of parameters which fix the content of the atmosphere column along
+                     the telescope line of sight.
+                 3) transforming this parameter change list into a ".tp5" file which is the only entry into
+                     the rigid MODTRAN system the blackbox that will really compute the radiation
+                     transport along the line of sight .
+                 4) run MODTRAN4V3R1to get the spectra
+                 5) recombine the spectra with the relevant telescope pointing identifiers                          and organize them for easy use.
+
+As by agreement between the APC team and the Calsim collaboration,
+- we deliver today only the tools for steps 2) and 3).
+-  step 1) will have to wait for the end of the year( the coding of this module is not decent
+   for a public exhibition)
+-  it is up to you to install Modtran4V3R1 on your machine and run step 4)
+-  I have tools which can facilitate step 5) which I will adapt and deliver once I have a first return for this delivery
+
+So you can freely
+  - combine the only given atmosphere sequence (meteo.02Atm_history.dat ) with the given lsst pointing
+    observation history (Opsim3.61.sel.dat) to produce a _parmlist.dat file  With the program
+    MakesequenceV5.1.py
+ - combine the same atmosphere sequence with any other lsst observation history scenario
+    you can produce (provided it
+    provided you jjust respect the template. Opsim3.61.sel is a subset of Opsim3.61 keeping only 1 entry
+    out of 300 it contains only 2700 entries or so. Mind that modtran is a complex and lengthy process.
+    The current organization of things would not be suitable for a large number of entries (say more
+     than 30000 entries) for more  I have tools available to fractionate the task.
+  - ask me to deliver different atmosphere sequences based on different meteo scenarios
+    (to be agreed upon) and/or to cover other calendar periods.
+
+The package contains
+
+mkatmos/Docs with documentation : This you must read, criticize and comment
+                  in the future there will be there a userguide to the modules
+
+mkatmos/Parmfiles : This contains things you must NEVER touch without my permission
+
+mkatmos/SpData : This contains the data I put (AtmosHist, LsstObsHsit) or  will be
+                            filled by your action (the other 2)
+
+mkatmos/Toolbox : This contains the python modules  MakesequenceV5.1.py and Makecard2A.py
+                            plus some ancilliary utilies which may be called by the former.
+
+
+You can test them by simply
+                 - copying on your own linux machine the whole directory structure starting from
+                    mkatmos onwards.
+
+                 - editing the MakesequenceV5.1.py to indicate your local absolute path to the
+                     mkatmos dir. You'll find all the .py modules in the mkatmos/Toolbox dir
+                 - running MakesequenceV5.1.py which should create a _parmfile with the appropriate
+                   filename in  mkatmos/SpData/Runparm
+
+                 - editing the Makecard2A.py to indicate your local absolute path to the
+                     mkatmos dir.
+                 - running Makecard2A.py which should create a .tp5 file with the appropriate
+                   filename in mkatmos/SpData/Opsim3.61.02sel/
+                   Mind, if you try new lsst observing histories, you will have to create the corresponding
+                    directory in SpData and make the necessary change in MakeCard.
+
+
+if you do that and get a non empty .tp5 file then it works
+
+if in addition you did instal MODTRAN4V3R1, you can try to run it on the .tp5 file
+then you'll get spectra
+
+WARNING*** one key of the success is the Cardtemplate.dat file in mkatmos/Parmfiles
+                if it has been manipulated on a windows machine, you'll never be able to use it again
+               on a linux machine due to the bloody Ctrl M's
+              Makecard2A will conscienciously propagate the disaster to the .tp5 file
+              and Modtran will fail. This is certainly obvious to most of you but you don't immediately
+              have that in mind when you read the modtran error message :
+
+                     "STOP Error:  Molecular band model data file not found. statement executed"
+
+              where "executed" has the meaning it has for the sentenced to death.
+

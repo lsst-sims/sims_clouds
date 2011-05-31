@@ -1,0 +1,11 @@
+The cloud simulation output file has 3 columns : x,y position (degrees) and the extinction (centered on 0)
+
+Use : 
+
+MakeClouds.py nb_real
+
+Where nb_real is the number of realization you want to generate
+
+Or you can use the CallClouds_test_SA.py as a script to call everything. ( beginning of this script is meant to go with MIchel's code, I removed the end for now that writes in the same output files of Michel)
+
+
