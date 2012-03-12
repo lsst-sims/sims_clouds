@@ -1,5 +1,5 @@
-# this package needs scipy, but there is no 'package' for scipy yet
-#setupRequired(scipy)
+# scipy is available from the LSST stack now 
+setupRequired(scipy)
 
 envAppend(LD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
 envAppend(DYLD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
