@@ -19,7 +19,7 @@ class Clouds:
         # compute 2D power spectrum from 2D symetric correlation function
         PowerSpec2D = numpy.abs(fftpack.fft2(correl2D))
         # get a 2D random gaussian noise with rms = 1
-        noise2D = numpy.random.normal(zeros(self.sampling*self.sampling), 1.).reshape(self.sampling, self.sampling)
+        noise2D = numpy.random.normal(numpy.zeros(self.sampling*self.sampling), 1.).reshape(self.sampling, self.sampling)
         # a realization is given in Fourier space calculating tf(noise)*sqrt(powerspectum)
         fourierclouds = fftpack.fft2(noise2D)*numpy.sqrt(PowerSpec2D)
         # then, inverse Fourier transform to get clouds

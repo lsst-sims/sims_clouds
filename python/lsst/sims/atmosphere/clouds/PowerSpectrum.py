@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy
 from scipy import interpolate
 
@@ -26,9 +25,9 @@ class PowerSpectrum:
         self.xstep = self.windowsize/numpy.float(self.sampling)
         self.x = numpy.arange(0, self.sampling-self.xstep, self.xstep)
         # Calculate variable for the structure function.
-        al = -(1/(x1-x0))*log(1-(y1/ymm))
+        al = -(1/(x1-x0))*numpy.log(1-(y1/ymm))
         # Calculate the actual structure function.
-        self.SF = ymm*(1.-exp(-al*self.x))   
+        self.SF = ymm*(1.-numpy.exp(-al*self.x))   
         
     def ComputeCorrelationFunction(self):
         """Compute the correlation function from the structure function."""
@@ -59,7 +58,7 @@ class PowerSpectrum:
         # correl[size-i][j] = correl[i][j]
         for i in range(self.sampling/2+self.sampling%2):
             for j in range(self.sampling/2+self.sampling%2):
-                co = interpfunc(sqrt((i*i+j*j))*localxstep)
+                co = interpfunc(numpy.sqrt((i*i+j*j))*localxstep)
                 correl2D[i,j] = co
                 correl2D[self.sampling-1-i,self.sampling-1-j] = co
                 correl2D[i,self.sampling-1-j] = co
