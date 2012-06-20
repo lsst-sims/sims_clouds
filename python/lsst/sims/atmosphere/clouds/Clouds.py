@@ -1,10 +1,8 @@
 import numpy
+from PowerSpectrum import PowerSpectrum
 from scipy import interpolate, fftpack
 
-## get clean ...
-
-class Clouds:
-    
+class Clouds:    
     def __init__(self, ws, s):
         # set the half-diagonal size of the 2D Fourier space equal to the maximum frequency of the 1D power spectrum
         self.windowsize = ws/numpy.sqrt(2.)
@@ -12,18 +10,32 @@ class Clouds:
         self.sampling = s
         # and the spacing
         self.xstep = self.windowsize/numpy.float(self.sampling)
+
+    def setupPowerSpectrum(self):
+        """Set up the power spectrum used to generate the clouds. """
+        ps = PowerSpectrum(self.windowsize, self.sampling)
+        ps.ComputeStructureFunction()
+        self.correl2D = ps.getCorrel2D()
         
-    def DirectClouds(self, correl2D):
+    def DirectClouds(self, correl2D=None, randomSeed=None):
         """Directly compute clouds using random noise in real space"""
         # nothing to do with symetry, quarters shift, etc.
         # compute 2D power spectrum from 2D symetric correlation function
+        if correl2D == None:
+            correl2D = self.correl2D   # do this for backward compatibility
         PowerSpec2D = numpy.abs(fftpack.fft2(correl2D))
         # get a 2D random gaussian noise with rms = 1
+        # If random seed is set, then set that within numpy (allows repeatable performance). 
+        if randomSeed != None:
+            numpy.random.seed(randomSeed)
         noise2D = numpy.random.normal(numpy.zeros(self.sampling*self.sampling), 1.).reshape(self.sampling, self.sampling)
         # a realization is given in Fourier space calculating tf(noise)*sqrt(powerspectum)
         fourierclouds = fftpack.fft2(noise2D)*numpy.sqrt(PowerSpec2D)
         # then, inverse Fourier transform to get clouds
         self.clouds = numpy.real(fftpack.ifft2(fourierclouds))
+
+        # IS IT POSSIBLE THAT THIS FUNCTION (or a different one) COULD RETURN AN INTERPOLATION FUNCTION FOR THE CLOUD INSTEAD
+        #  OF THE GRID OF CLOUD EXTINCTION VALUES?
 
 
     def WriteClouds(self, filename):
@@ -37,51 +49,3 @@ class Clouds:
                 f.write(str(i*self.xstep)+'\t'+str(j*self.xstep)+'\t'+str(real(self.clouds[i,j]))+'\n')
         f.close()
 
-"""
-## essai
-    def FitClouds(self):
-        # fit clouds with a 2D spline
-        # build vectors
-        x = numpy.arange(0, self.sampling/2, self.xstep)
-        
-        x=[]
-        y=[]
-        z=[]
-        for i in range(self.sampling/2):
-            for j in range(self.sampling/2):
-                x=append(x,i*self.xstep)
-                y=append(y,j*self.xstep)
-                z=append(z,self.clouds[i,j])
-                
-#        print len(x), len(y), len(self.clouds), len(z)
-       # print self.sampling/2
-        figure(1,(6,4))
-
-        im = imshow(self.clouds, cmap=cm.jet)
-
-        im.set_interpolation('bicubic')
-        colorbar()
-        show()
-        ## tck = interpolate.bisplrep(x,y,z)
-
-##         print  'nombre noeuds en x : ', len(tck[0])
-        
-##         print 'deg : ', tck[3], tck[4] 
-##         print  'coefs : ', tck[2] 
-        
-##   #      print len(x), len(y), len(self.clouds), len(z), len(tck[3])
-
-##         ## plot
-##         ## normalement il faut mettre le nombre de noeuds en x/2 ? 
-##         figure(2,(6,4))
-##         xnew,ynew = mgrid[-1:1:34j,-1:1:34j] 
-##         znew = interpolate.bisplev(xnew[:,0],ynew[0,:],tck)
-        
-##         print znew.shape
-##         print self.clouds.shape
-##         imbis = imshow(znew, cmap=cm.jet)
-##         colorbar()
-##         show()
-        stop=raw_input()
-
-"""

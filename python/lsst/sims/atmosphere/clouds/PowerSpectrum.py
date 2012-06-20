@@ -38,7 +38,7 @@ class PowerSpectrum:
 
     def getCorrel2D(self):
         """return a 2D correlation function"""
-        # Okay, bit a hack here .. not sure why this method & ComputeStructureFunction should be separate if no separate arguments
+        # .. not sure why this method & ComputeStructureFunction should be separate if no separate arguments
         try:
             self.xstep
         except AttributeError:
