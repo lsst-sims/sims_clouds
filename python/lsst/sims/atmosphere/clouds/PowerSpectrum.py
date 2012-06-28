@@ -64,7 +64,18 @@ class PowerSpectrum:
                 correl2D[i,self.sampling-1-j] = co
                 correl2D[self.sampling-1-i,j] = co
         return correl2D
-       
+
+    def GetImPS(self):
+        """return a power spectrum from IR image -interpolated for sampling"""
+        
+        # Get PS from real data - temp  
+        RawPS2D = loadtxt('1104-batch1_PS2D.txt')
+        # shift
+        RawPS2D = fftpack.ifftshift(RawPS2D)
+        PowerSpec = abs(RawPS2D)
+        ## will work with interpolation 
+        return PowerSpec
+
     def writeSF(self, filename):
         """write structure function in a text file"""
         f = open(filename, 'w')

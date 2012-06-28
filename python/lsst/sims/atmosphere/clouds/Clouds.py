@@ -37,6 +37,39 @@ class Clouds:
         # IS IT POSSIBLE THAT THIS FUNCTION (or a different one) COULD RETURN AN INTERPOLATION FUNCTION FOR THE CLOUD INSTEAD
         #  OF THE GRID OF CLOUD EXTINCTION VALUES?
 
+    def CloudsFromImage(self, PowerSpec):
+        """Compute clouds based on frequency analysis of an IR image"""
+
+        ## for this temp version sampling at 240 imperative (interpolation was too slow and removed for now)
+        
+        # get power spectrum from an IR image - normalization for gray ext. see notes
+        ## reference here !!
+        
+        # get a 2D random gaussien noise with rms = 1
+        noise2D = random.normal(zeros(self.sampling*self.sampling), 1.).reshape(self.sampling, self.sampling)        
+        # a realization is given in Fourier space calculating tf(noise)*sqrt(powerspectum)
+        fourierclouds = fftpack.fft2(noise2D)*sqrt(PowerSpec)
+        # then, inverse Fourier transform to get clouds
+        self.clouds = real(fftpack.ifft2(fourierclouds))
+
+        # get 0 abs as minimum alteration of image  
+        mins=[]
+        maxs=[]
+        for i in range(self.sampling):
+            mins = append(mins, min(self.clouds[i,:]))
+            maxs = append(maxs, max(self.clouds[i,:]))
+            
+        self.clouds = self.clouds - min(mins)
+        
+        ## correct for normalizations 
+        init_im =  loadtxt('1104-batch1_im.txt')
+        self.clouds = self.clouds/rms_flat(self.clouds)*rms_flat(init_im)
+        ## will return an interpolation function next 
+
+
+
+
+
 
     def WriteClouds(self, filename):
         """Write clouds in a text file x y z"""
