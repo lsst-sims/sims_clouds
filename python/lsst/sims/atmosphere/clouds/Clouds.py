@@ -1,6 +1,8 @@
+import os
 import numpy
-from PowerSpectrum import PowerSpectrum
 from scipy import interpolate, fftpack
+from PowerSpectrum import PowerSpectrum
+from pylab import rms_flat
 
 class Clouds:    
     def __init__(self, ws, s):
@@ -11,11 +13,19 @@ class Clouds:
         # and the spacing
         self.xstep = self.windowsize/numpy.float(self.sampling)
 
-    def setupPowerSpectrum(self):
+    def setupPowerSpectrum_SF(self):
         """Set up the power spectrum used to generate the clouds. """
         ps = PowerSpectrum(self.windowsize, self.sampling)
         ps.ComputeStructureFunction()
         self.correl2D = ps.getCorrel2D()
+        
+    def setupPowerSpectrum_Image(self):
+        """Set up the power spectrum used to generate the clouds, when using an image as the base."""
+        # Note that this is actually a different version of a power spectrum than the one from
+        #  a raw 'power spectrum' above ... should really have a different name, as has different attributes.
+        ps = PowerSpectrum(self.windowsize, self.sampling)
+        self.powerSpec = ps.GetImPS()
+        
         
     def DirectClouds(self, correl2D=None, randomSeed=None):
         """Directly compute clouds using random noise in real space"""
@@ -37,38 +47,35 @@ class Clouds:
         # IS IT POSSIBLE THAT THIS FUNCTION (or a different one) COULD RETURN AN INTERPOLATION FUNCTION FOR THE CLOUD INSTEAD
         #  OF THE GRID OF CLOUD EXTINCTION VALUES?
 
-    def CloudsFromImage(self, PowerSpec):
+    def CloudsFromImage(self, powerSpec=None, randomSeed=None, normfile=None):
         """Compute clouds based on frequency analysis of an IR image"""
-
-        ## for this temp version sampling at 240 imperative (interpolation was too slow and removed for now)
-        
+        ## for this temp version sampling at 240 imperative (interpolation was too slow and removed for now)        
         # get power spectrum from an IR image - normalization for gray ext. see notes
         ## reference here !!
-        
         # get a 2D random gaussien noise with rms = 1
-        noise2D = random.normal(zeros(self.sampling*self.sampling), 1.).reshape(self.sampling, self.sampling)        
+        if powerSpec == None:
+            powerSpec = self.powerSpec
+        if randomSeed != None:
+            numpy.random.seed(randomSeed)
+        noise2D = numpy.random.normal(numpy.zeros(self.sampling*self.sampling), 1.).reshape(self.sampling, self.sampling)        
         # a realization is given in Fourier space calculating tf(noise)*sqrt(powerspectum)
-        fourierclouds = fftpack.fft2(noise2D)*sqrt(PowerSpec)
+        fourierclouds = fftpack.fft2(noise2D)*numpy.sqrt(powerSpec)
         # then, inverse Fourier transform to get clouds
-        self.clouds = real(fftpack.ifft2(fourierclouds))
-
+        self.clouds = numpy.real(fftpack.ifft2(fourierclouds))
         # get 0 abs as minimum alteration of image  
         mins=[]
         maxs=[]
         for i in range(self.sampling):
-            mins = append(mins, min(self.clouds[i,:]))
-            maxs = append(maxs, max(self.clouds[i,:]))
-            
+            mins = numpy.append(mins, min(self.clouds[i,:]))
+            maxs = numpy.append(maxs, max(self.clouds[i,:]))
         self.clouds = self.clouds - min(mins)
-        
         ## correct for normalizations 
-        init_im =  loadtxt('1104-batch1_im.txt')
+        if normfile == None:
+            normfile = os.path.join(os.getenv('ATMOSPHERE_CLOUDS_DIR'), 'data/1104-batch1_im.txt')
+            print normfile
+        init_im = numpy.loadtxt(normfile)
         self.clouds = self.clouds/rms_flat(self.clouds)*rms_flat(init_im)
         ## will return an interpolation function next 
-
-
-
-
 
 
     def WriteClouds(self, filename):

@@ -1,5 +1,6 @@
+import os
 import numpy
-from scipy import interpolate
+from scipy import interpolate, fftpack
 
 class PowerSpectrum:
     
@@ -65,14 +66,15 @@ class PowerSpectrum:
                 correl2D[self.sampling-1-i,j] = co
         return correl2D
 
-    def GetImPS(self):
+    def GetImPS(self, powerspectrumfile=None):
         """return a power spectrum from IR image -interpolated for sampling"""
-        
         # Get PS from real data - temp  
-        RawPS2D = loadtxt('1104-batch1_PS2D.txt')
+        if powerspectrumfile == None:
+            powerspectrumfile = os.path.join(os.getenv('ATMOSPHERE_CLOUDS_DIR'), 'data/1104-batch1_PS2D.txt')
+        RawPS2D = numpy.loadtxt(powerspectrumfile)
         # shift
         RawPS2D = fftpack.ifftshift(RawPS2D)
-        PowerSpec = abs(RawPS2D)
+        PowerSpec = numpy.abs(RawPS2D)
         ## will work with interpolation 
         return PowerSpec
 
