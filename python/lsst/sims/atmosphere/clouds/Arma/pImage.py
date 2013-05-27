@@ -266,7 +266,7 @@ class PImage():
         self.phasespecI[1:self.xcen, self.ycen+1:self.ny] = -1.*numpy.fliplr(numpy.flipud(self.phasespecI[self.xcen+1:self.nx, 1:self.ycen]))
         return
 
-    def invertFft(self, useI=False):
+    def invertFft(self, useI=False, verbose=False):
         """Convert the 2d FFT into an image (imageI)."""
         # Checking this process with a simple (non-noisy) image shows that it will result in errors on the
         #  level of 1e-15 counts (in an original image with min/max scale of 1.0).
@@ -279,7 +279,7 @@ class PImage():
         else:
             self.imageI = fftpack.ifft2(fimage)
         if self.imageI.imag.max() < 1e-14:
-            print "Inverse FFT created only small imaginary portion - discarding."
+            if verbose:  print "Inverse FFT created only small imaginary portion - discarding."
             self.imageI = self.imageI.real
         return
 
