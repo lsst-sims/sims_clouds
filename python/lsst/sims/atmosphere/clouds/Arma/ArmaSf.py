@@ -65,7 +65,7 @@ class ArmaSf():
         """Calculate the ACF using an ARMA function (from statsmodels)."""
         nma = round(self.lambda_avg/self.lambda_s)
         ma_coeff = numpy.ones((nma))
-        lag_max = round(x_max / self.lambda_s)
+        lag_max = ceil(x_max / self.lambda_s)
         a1 = exp(-self.lambda_s / self.lambda_p)
         # Use the statsmodels ARMA function
         armaAcf = arma_acf([1,-a1], ma_coeff, nobs=lag_max)
