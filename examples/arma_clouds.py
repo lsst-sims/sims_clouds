@@ -1,7 +1,10 @@
-import numpy
+import numpy as np
 import pylab
 from lsst.sims.atmosphere.clouds.Arma.ArmaSf import ArmaSf
 from lsst.sims.atmosphere.clouds.Arma.Clouds import Clouds
+
+# PS - you need statsmodels (it's a dependency for atmosphere_clouds now..)
+# PPS - apparenty some values of kappa/c can give nans for the cloud. This is bad, but not the time to fix.
 
 # Snippet to support test timing
 import time
@@ -32,7 +35,8 @@ armasf = ArmaSf()
 # pixscale = 10 "/pix (1080x1080 images) -> 0.9 s/visit
 # pixscale = 9 "/pix (1200x1200 images) -> 1.1 s/visit
 # pixscale = 8 "/pix (1350x1350 images) -> 1.4 s/visit     [for a 2 year run, with avg 800 visits/night, this is about 227 hours of cloud generation]
-pixscale = 13.
+
+pixscale = 9.
 
 # Set up lambda_p / lambda_avg / lambda_s (lambda_s = anything, but just much smaller than lambda_*)
 lambda_p = 500.
@@ -41,20 +45,23 @@ lambda_s = 2.
 
 # Set kappa and c values
 num_clouds = 10
-c = numpy.random.uniform(low=3, high=8, size=num_clouds)
-kappa = numpy.random.normal(loc=0.5, scale=0.3, size=num_clouds)
-kappa = numpy.where(kappa<0, 0, kappa)
+cs = np.random.uniform(low=3, high=8, size=num_clouds)
+kappas = np.random.normal(loc=0.5, scale=0.3, size=num_clouds)
+kappas = np.where(kappas<0, 0, kappas)
 
 # Start timer 
 t = time.time()
 
 #fig1 = pylab.figure(1)
 
-for kappa, c in zip(kappa, c):
+outRoot = 'cloudTest_'
+for i, (kappa, c) in enumerate(zip(kappas, cs)):
     sftheta, sfsf = armasf.CloudSf(lambda_p, lambda_avg, lambda_s, kappa, c)
     #pylab.figure(1)
     #pylab.plot(sftheta, sfsf, label='kappa %.2f c %.2f' %(kappa, c))
-    cloud.makeCloudImage(sftheta, sfsf, kappa, fov=3.0, pixscale=pixscale, oversample=1.0)
+    cloud.makeCloudImage(sftheta, sfsf, kappa, fov=3.0, pixscale=pixscale, oversample=1.0)    
+    print i, cloud.cloudimage.mean()
+    np.save(outRoot+'%02d'%i, cloud.cloudimage)
     #cloud.plotCloudImage()
     dt, t = dtime(t)
     print '# To generate next cloud image: %f seconds' %(dt)
@@ -62,5 +69,5 @@ for kappa, c in zip(kappa, c):
 #pylab.show()
 
 # At each point, the cloud image itself is cloud.cloudimage and has size as below: 
-print '# Size of cloud images being generated:', numpy.shape(cloud.cloudimage)
+print '# Size of cloud images being generated:', np.shape(cloud.cloudimage)
 
